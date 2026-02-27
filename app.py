@@ -24,7 +24,7 @@ LOG_PATH       = os.environ.get("LOG_PATH", "/tmp/nzci_sales_log.json")
 COURSE_MAP = {
     "wqlta":           "6243abf7",   # Intro $97    -> Excavator Awareness
     "emmgw":           "612f306e",   # Cert  $497   -> Excavator VOC
-    "wpkqyo":          "612f3428",   # Corp  $997   -> Plant Recovery
+    "jxefqz":          "612f3428",   # Corp  $997   -> Plant Recovery
     "nzci-flexi":      "6243abf7",   # Default
 }
 
