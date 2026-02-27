@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.env
+nzci_sales_log.json
+*.log
