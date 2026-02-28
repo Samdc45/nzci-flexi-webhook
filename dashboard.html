@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sam Central — Command Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+  .header { background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f57c00; }
+  .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+  .header .subtitle { font-size: 0.75rem; opacity: 0.8; }
+  .timestamp { font-size: 0.75rem; opacity: 0.7; text-align: right; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #f57c00; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .status-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 0.85rem; }
+  .status-row:last-child { border-bottom: none; }
+  .badge { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+  .badge.live { background: #1a4731; color: #3fb950; }
+  .badge.warn { background: #3d2b1a; color: #f0883e; }
+  .badge.dead { background: #3d1a1a; color: #f85149; }
+  .badge.pending { background: #1f2a3d; color: #58a6ff; }
+  .email-item { padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 0.82rem; }
+  .email-item:last-child { border-bottom: none; }
+  .email-from { color: #58a6ff; font-weight: 600; font-size: 0.75rem; }
+  .email-subject { color: #e1e4e8; margin: 2px 0; }
+  .email-time { color: #8b949e; font-size: 0.7rem; }
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 0.82rem; }
+  .task-item:last-child { border-bottom: none; }
+  .priority { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .p-high { background: #f85149; }
+  .p-med { background: #f0883e; }
+  .p-low { background: #3fb950; }
+  .metric-big { font-size: 2.5rem; font-weight: 700; color: #3fb950; line-height: 1; }
+  .metric-label { font-size: 0.75rem; color: #8b949e; margin-top: 4px; }
+  .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .metric-box { text-align: center; padding: 12px; background: #0d1117; border-radius: 6px; }
+  .action-btn { display: block; width: 100%; padding: 10px; margin: 6px 0; background: #21262d; border: 1px solid #30363d; border-radius: 6px; color: #e1e4e8; text-decoration: none; font-size: 0.82rem; text-align: center; cursor: pointer; transition: background 0.2s; }
+  .action-btn:hover { background: #30363d; }
+  .action-btn.primary { background: #1a3a5c; border-color: #58a6ff; color: #58a6ff; }
+  .philosophy { background: linear-gradient(135deg, #1a237e22, #0d47a122); border: 1px solid #1a237e; border-radius: 8px; padding: 16px; font-style: italic; font-size: 0.85rem; color: #a5b4fc; text-align: center; margin: 0 16px 16px; }
+  .unread-count { font-size: 2rem; font-weight: 700; color: #58a6ff; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; padding: 8px; } .metrics-row { grid-template-columns: repeat(3, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header h1">⚙️ SAM CENTRAL</div>
+    <div class="subtitle">Command Dashboard — South Consultants NZ</div>
+  </div>
+  <div class="timestamp" id="clock">Loading...</div>
+</div>
+
+<div class="philosophy">
+  "Train to replace yourself. Then train them to replace themselves." — Sam Dampier-Crossley
+</div>
+
+<div class="grid">
+
+  <!-- SYSTEM STATUS -->
+  <div class="card">
+    <div class="card-title">🟢 System Status</div>
+    <div class="status-row"><span>Railway Webhook v2.0</span><span class="badge live">LIVE</span></div>
+    <div class="status-row"><span>NZCI Flexi WordPress</span><span class="badge live">LIVE</span></div>
+    <div class="status-row"><span>Compaction 101</span><span class="badge live">LIVE</span></div>
+    <div class="status-row"><span>Gumroad (3 products)</span><span class="badge live">LIVE</span></div>
+    <div class="status-row"><span>Gmail Direct (IMAP)</span><span class="badge live" id="gmail-status">LIVE</span></div>
+    <div class="status-row"><span>EdApp/SafetyCulture</span><span class="badge warn">TOKEN NEEDED</span></div>
+    <div class="status-row"><span>LinkedIn OAuth</span><span class="badge pending">PENDING APPROVAL</span></div>
+    <div class="status-row"><span>Knowledge Base (8 files)</span><span class="badge live">LOADED</span></div>
+  </div>
+
+  <!-- EMAIL TRIAGE -->
+  <div class="card">
+    <div class="card-title">📧 Email Triage — samdc45south@gmail.com</div>
+    <div id="email-panel">
+      <div class="metric-box" style="text-align:center; margin-bottom:12px;">
+        <div class="unread-count" id="unread-count">—</div>
+        <div class="metric-label">Unread Emails</div>
+      </div>
+      <div id="email-list"><div style="color:#8b949e; font-size:0.82rem;">Loading emails...</div></div>
+    </div>
+  </div>
+
+  <!-- REVENUE & PRODUCTS -->
+  <div class="card">
+    <div class="card-title">💰 Revenue — Products Live</div>
+    <div class="status-row"><span>NZCI Flexi Intro</span><span class="badge live">$97</span></div>
+    <div class="status-row"><span>NZCI Flexi Certificate</span><span class="badge live">$497</span></div>
+    <div class="status-row"><span>NZCI Flexi Corporate</span><span class="badge live">$997</span></div>
+    <div class="status-row"><span>Compaction 101 Individual</span><span class="badge live">$197</span></div>
+    <div class="status-row"><span>Compaction 101 Team</span><span class="badge live">$797</span></div>
+    <div class="status-row"><span>Compaction 101 Corporate</span><span class="badge live">$1,497</span></div>
+    <div style="margin-top:12px; padding:10px; background:#0d1117; border-radius:6px; font-size:0.75rem; color:#8b949e;">
+      💳 Payments via Gumroad → Railway → EdApp enrollment pipeline
+    </div>
+  </div>
+
+  <!-- PRIORITY TASKS -->
+  <div class="card">
+    <div class="card-title">📋 Priority Tasks</div>
+    <div class="task-item"><div class="priority p-high"></div><div><strong>SafetyCulture API Token</strong><br><span style="color:#8b949e; font-size:0.75rem;">app.safetyculture.com → Settings → API Tokens</span></div></div>
+    <div class="task-item"><div class="priority p-high"></div><div><strong>Quo Phone Port-out</strong><br><span style="color:#8b949e; font-size:0.75rem;">Deadline: March 6, 2026</span></div></div>
+    <div class="task-item"><div class="priority p-med"></div><div><strong>LinkedIn Share Permission</strong><br><span style="color:#8b949e; font-size:0.75rem;">Awaiting LinkedIn approval email</span></div></div>
+    <div class="task-item"><div class="priority p-med"></div><div><strong>Blue Diamond Haulage Follow-up</strong><br><span style="color:#8b949e; font-size:0.75rem;">Paul Kelly — corporate course opportunity ($3,335 active client)</span></div></div>
+    <div class="task-item"><div class="priority p-med"></div><div><strong>ACC Interest Calculation</strong><br><span style="color:#8b949e; font-size:0.75rem;">Request from ACC — $159k claim won</span></div></div>
+    <div class="task-item"><div class="priority p-med"></div><div><strong>Stable Billing Update</strong><br><span style="color:#8b949e; font-size:0.75rem;">Failed payment warning received</span></div></div>
+    <div class="task-item"><div class="priority p-low"></div><div><strong>AU Market Expansion</strong><br><span style="color:#8b949e; font-size:0.75rem;">CCNZ + PKM Earthmoving + Jamieson Civil outreach</span></div></div>
+  </div>
+
+  <!-- KEY CONTACTS -->
+  <div class="card">
+    <div class="card-title">🤝 Key Contacts & Opportunities</div>
+    <div class="status-row"><span>Blue Diamond Haulage (Paul Kelly)</span><span class="badge live">$3,335 CLIENT</span></div>
+    <div class="status-row"><span>CCNZ (Grant Radovanovich)</span><span class="badge pending">800+ MEMBERS</span></div>
+    <div class="status-row"><span>TPM Civil</span><span class="badge pending">NZ PROSPECT</span></div>
+    <div class="status-row"><span>Graham Contractors</span><span class="badge pending">NZ PROSPECT</span></div>
+    <div class="status-row"><span>PKM Earthmoving (AU)</span><span class="badge pending">AU PROSPECT</span></div>
+    <div class="status-row"><span>Jamieson Civil (AU)</span><span class="badge pending">AU PROSPECT</span></div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="card">
+    <div class="card-title">⚡ Quick Actions</div>
+    <a href="https://nzci-flexi-webhook-production.up.railway.app" target="_blank" class="action-btn primary">🚂 Railway Health Check</a>
+    <a href="https://samdc45south-bgvkw.wordpress.com" target="_blank" class="action-btn">🌐 NZCI Flexi Site</a>
+    <a href="https://samdc45.github.io/compaction-101/" target="_blank" class="action-btn">🪨 Compaction 101 Site</a>
+    <a href="https://samdc45south.gumroad.com" target="_blank" class="action-btn">💳 Gumroad Products</a>
+    <a href="https://app.safetyculture.com" target="_blank" class="action-btn">🎓 SafetyCulture LMS</a>
+    <a href="https://railway.app" target="_blank" class="action-btn">📊 Railway Logs</a>
+    <a href="https://nzci-flexi-webhook-production.up.railway.app/linkedin/auth" target="_blank" class="action-btn">🔗 Connect LinkedIn</a>
+  </div>
+
+  <!-- ACC & FINANCIAL -->
+  <div class="card">
+    <div class="card-title">💼 Financial Overview</div>
+    <div class="metrics-row">
+      <div class="metric-box">
+        <div class="metric-big" style="font-size:1.4rem;">$159k</div>
+        <div class="metric-label">ACC Win</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-big" style="font-size:1.4rem;">$1,515</div>
+        <div class="metric-label">Weekly Gross</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-big" style="font-size:1.4rem;">$3,335</div>
+        <div class="metric-label">Blue Diamond</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="status-row"><span>ACC Weekly Comp</span><span class="badge live">ACTIVE ✓</span></div>
+      <div class="status-row"><span>Interest Calculation</span><span class="badge warn">PENDING REQUEST</span></div>
+      <div class="status-row"><span>IRD Tax Review</span><span class="badge warn">ACTION NEEDED</span></div>
+      <div class="status-row"><span>Xero (Blue Diamond)</span><span class="badge live">ACTIVE</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').innerHTML = 
+      now.toLocaleDateString('en-NZ', {weekday:'long', day:'numeric', month:'long'}) + 
+      '<br>' + now.toLocaleTimeString('en-NZ');
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Load email data from /dashboard/emails endpoint
+  fetch('/dashboard/emails')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('unread-count').textContent = data.unread_count || '0';
+      const list = document.getElementById('email-list');
+      if (data.emails && data.emails.length > 0) {
+        list.innerHTML = data.emails.slice(0, 5).map(e => `
+          <div class="email-item">
+            <div class="email-from">${e.from}</div>
+            <div class="email-subject">${e.subject}</div>
+            <div class="email-time">${e.date}</div>
+          </div>
+        `).join('');
+      } else {
+        list.innerHTML = '<div style="color:#8b949e; font-size:0.82rem;">Inbox clear ✓</div>';
+      }
+    })
+    .catch(() => {
+      document.getElementById('unread-count').textContent = '?';
+      document.getElementById('email-list').innerHTML = '<div style="color:#f85149; font-size:0.82rem;">Email check offline</div>';
+    });
+</script>
+
+</body>
+</html>

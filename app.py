@@ -222,6 +222,75 @@ def index():
                                   "/linkedin/auth", "/linkedin/callback",
                                   "/linkedin/post", "/linkedin/status"]}), 200
 
+
+# ═══════════════════════════════════════════════════════════════
+# SAM CENTRAL COMMAND DASHBOARD
+# 4-Phase Vibe Coding | KB-Powered | IDD Method
+# ═══════════════════════════════════════════════════════════════
+import imaplib
+import email as email_lib
+
+GMAIL_USER         = os.environ.get("GMAIL_USER", "samdc45south@gmail.com")
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+DASH_PASSWORD      = os.environ.get("DASHBOARD_PASSWORD", "SamCentral2026")
+
+DASH_LOGIN = '''<!DOCTYPE html><html>
+<head><title>Sam Central</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f1117;color:#e1e4e8;
+font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;
+height:100vh;flex-direction:column;gap:16px}</style></head>
+<body><h2 style="color:#f57c00">⚙️ Sam Central</h2>
+<p style="color:#8b949e">South Consultants NZ — Command Dashboard</p>
+<form method=get>
+<input name=auth type=password placeholder="Dashboard password"
+style="padding:12px 16px;border-radius:6px;border:1px solid #30363d;background:#161b22;
+color:#e1e4e8;font-size:1rem;display:block;margin:8px 0;width:260px">
+<button type=submit style="width:260px;padding:12px;background:#1a3a5c;color:#58a6ff;
+border:1px solid #58a6ff;border-radius:6px;cursor:pointer;font-size:1rem;">Enter</button>
+</form></body></html>'''
+
+@app.route("/dashboard")
+def dashboard():
+    if request.args.get("auth") != DASH_PASSWORD:
+        return DASH_LOGIN
+    try:
+        with open("dashboard.html") as f:
+            return f.read()
+    except:
+        return "<h1>Dashboard loading...</h1>", 200
+
+@app.route("/dashboard/emails")
+def dashboard_emails():
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        mail.select("inbox")
+        _, ud = mail.search(None, "UNSEEN")
+        unread = len(ud[0].split()) if ud[0] else 0
+        _, ad = mail.search(None, "ALL")
+        ids = ad[0].split()
+        latest = ids[-5:] if len(ids) >= 5 else ids
+        emails = []
+        for eid in reversed(latest):
+            _, md = mail.fetch(eid, "(BODY[HEADER.FIELDS (FROM SUBJECT DATE)])")
+            if md and md[0]:
+                msg = email_lib.message_from_bytes(md[0][1])
+                fr = msg.get("From","")
+                fr = fr.split("<")[0].strip().strip('"')[:30] if "<" in fr else fr[:25]
+                emails.append({"from":fr,"subject":msg.get("Subject","")[:60],"date":msg.get("Date","")[:22]})
+        mail.logout()
+        return jsonify({"unread_count":unread,"emails":emails,"account":GMAIL_USER})
+    except Exception as e:
+        return jsonify({"unread_count":"?","emails":[],"error":str(e)})
+
+@app.route("/dashboard/status")
+def dashboard_status_api():
+    li = os.path.exists(LI_TOKEN_FILE)
+    gm = bool(GMAIL_APP_PASSWORD)
+    return jsonify({"railway":"live","gmail":"live" if gm else "needs_config",
+                    "linkedin":"connected" if li else "pending","kb_files":8,
+                    "timestamp":datetime.utcnow().isoformat()})
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))
     app.run(host="0.0.0.0", port=port, debug=False)
